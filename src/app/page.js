@@ -8,11 +8,11 @@ import jsPDF from "jspdf";
 import "chart.js/auto";
 
 export default function Home() {
-    const [processes, setProcesses] = useState([
+    const processes = [
         { id: "P1", arrivalTime: 0, burstTime: 10 },
         { id: "P2", arrivalTime: 2, burstTime: 5 },
-        { id: "P3", arrivalTime: 4, burstTime: 8 },
-    ]);
+        { id: "P3", arrivalTime: 4, burstTime: 8 }
+    ];
 
     const [selectedAlgorithm, setSelectedAlgorithm] = useState("FIFO");
     const [results, setResults] = useState([]);
@@ -54,8 +54,7 @@ export default function Home() {
     );
 }
 
-    
-// FIFO Scheduling Algorithm
+// FIFO Algorithm
 function fifo(processes) {
     processes.sort((a, b) => a.arrivalTime - b.arrivalTime);
     let time = 0;
@@ -71,9 +70,21 @@ function fifo(processes) {
     return ganttChart;
 }
 
-// SJF Scheduling Algorithm
-function sjf() {
-    return [{ process: "SJF Test", startTime: 0, endTime: 0 }];
-}
+// SJF Algorithm
+function sjf(processes) {
+    let sortedProcesses = [...processes].sort((a, b) => a.burstTime - b.burstTime);
+    let currentTime = 0;
+    let ganttChart = [];
 
+    for (let process of sortedProcesses) {
+        let startTime = currentTime;
+        let endTime = startTime + process.burstTime;
+
+        ganttChart.push({ process: process.id, startTime, endTime });
+
+        currentTime = endTime;
+    }
+
+    return ganttChart;
+}
 
