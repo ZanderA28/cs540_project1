@@ -21,7 +21,10 @@ export default function Home() {
         let output = [];
         if (selectedAlgorithm === "FIFO") {
             output = fifo([...processes]);
-        } 
+        }
+        else if (selectedAlgorithm === "SJF") {
+            output = sjf([...processes]);
+        }
         setResults(output);
     }
 
@@ -66,6 +69,11 @@ function fifo(processes) {
     });
 
     return ganttChart;
+}
+
+// SJF Scheduling Algorithm
+function sjf() {
+    return [{ process: "SJF Test", startTime: 0, endTime: 0 }];
 }
 
 
