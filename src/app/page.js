@@ -13,19 +13,30 @@ export default function Home() {
         { id: "P2", arrivalTime: 2, burstTime: 5 },
         { id: "P3", arrivalTime: 4, burstTime: 8 },
     ]);
+
+    const [selectedAlgorithm, setSelectedAlgorithm] = useState("FIFO");
     const [results, setResults] = useState([]);
 
-    function runFIFO() {
-        const output = fifo([...processes]); // Run FIFO
+    function runScheduler() {
+        let output = [];
+        if (selectedAlgorithm === "FIFO") {
+            output = fifo([...processes]);
+        } 
         setResults(output);
     }
 
     return (
         <div style={{ padding: "20px" }}>
-            <h1>First-In, First-Out (FIFO) Scheduler</h1>
+            <h1>CPU Scheduling Algorithms</h1>
 
-            <button onClick={runFIFO} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
-                Run FCFS
+            <label>Select Algorithm:</label>
+            <select value={selectedAlgorithm} onChange={(e) => setSelectedAlgorithm(e.target.value)}>
+                <option value="FIFO">First-Come, First-Served (FIFO)</option>
+                <option value="SJF">Shortest Job First (SJF)</option>
+            </select>
+
+            <button onClick={runScheduler} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
+                Run {selectedAlgorithm}
             </button>
 
             <h2>Results:</h2>
@@ -40,6 +51,7 @@ export default function Home() {
     );
 }
 
+    
 // FIFO Scheduling Algorithm
 function fifo(processes) {
     processes.sort((a, b) => a.arrivalTime - b.arrivalTime);
@@ -55,3 +67,5 @@ function fifo(processes) {
 
     return ganttChart;
 }
+
+
