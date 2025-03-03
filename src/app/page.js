@@ -25,6 +25,9 @@ export default function Home() {
         else if (selectedAlgorithm === "SJF") {
             output = sjf([...processes]);
         }
+        else if (selectedAlgorithm === "STCF") {
+            output = stcf([...processes]);
+        }
         setResults(output);
     }
 
@@ -36,6 +39,7 @@ export default function Home() {
             <select value={selectedAlgorithm} onChange={(e) => setSelectedAlgorithm(e.target.value)}>
                 <option value="FIFO">First-Come, First-Served (FIFO)</option>
                 <option value="SJF">Shortest Job First (SJF)</option>
+                <option value="STCF">Shortest Time to Completion (STCF)</option>
             </select>
 
             <button onClick={runScheduler} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
@@ -87,4 +91,6 @@ function sjf(processes) {
 
     return ganttChart;
 }
+
+
 
