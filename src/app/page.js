@@ -28,6 +28,9 @@ export default function Home() {
         else if (selectedAlgorithm === "STCF") {
             output = stcf([...processes]);
         }
+        else if (selectedAlgorithm === "RR") {
+            output = rr([...processes])
+        }
         setResults(output);
     }
 
@@ -40,6 +43,7 @@ export default function Home() {
                 <option value="FIFO">First-Come, First-Served (FIFO)</option>
                 <option value="SJF">Shortest Job First (SJF)</option>
                 <option value="STCF">Shortest Time to Completion (STCF)</option>
+                <option value="RR">Round Robin (RR)</option>
             </select>
 
             <button onClick={runScheduler} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
