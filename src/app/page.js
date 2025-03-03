@@ -95,40 +95,39 @@ function sjf(processes) {
 
 // STCF Algorithm
 function stcf(processes) {
-    let time = 0;
+    let time = 0; // Current time
     let ganttChart = [];
     let remainingProcesses = processes.map(p => ({ ...p, remainingTime: p.burstTime })); 
     let currentProcess = null;
     let startTime = 0;
 
     while (remainingProcesses.some(p => p.remainingTime > 0)) {
-        // Get processes that have arrived and are still not completed
         let availableProcesses = remainingProcesses.filter(p => p.arrivalTime <= time && p.remainingTime > 0);
 
         if (availableProcesses.length === 0) {
-            time++;
+            time++; 
             continue;
         }
 
-        // Sort by shortest remaining time
+        // Sort by shortest remaining time 
         availableProcesses.sort((a, b) => a.remainingTime - b.remainingTime || a.arrivalTime - b.arrivalTime);
         let process = availableProcesses[0];
 
         if (currentProcess !== process.id) {
-            // If a new process starts running, record the previous one
+            
             if (currentProcess !== null) {
                 ganttChart.push({ process: currentProcess, startTime, endTime: time });
             }
-
+            
             currentProcess = process.id;
             startTime = time;
         }
 
-       
+        
         time++;
         process.remainingTime--;
 
-        t
+        
         if (process.remainingTime === 0) {
             remainingProcesses = remainingProcesses.filter(p => p.id !== process.id);
             ganttChart.push({ process: process.id, startTime, endTime: time }); 
