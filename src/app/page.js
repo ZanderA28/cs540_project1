@@ -93,4 +93,35 @@ function sjf(processes) {
 }
 
 
+// STCF Algorithm
+function stcf(processes) {
+    let time = 0; // Current time
+    let ganttChart = [];
+    let remainingProcesses = processes.map(p => ({ ...p, remainingTime: p.burstTime }));
 
+    while (remainingProcesses.some(p => p.remainingTime > 0)) {
+        let availableProcesses = remainingProcesses.filter(p => p.arrivalTime <= time && p.remainingTime > 0);
+
+        if (availableProcesses.length === 0) {
+            time++;
+            continue;
+        }
+
+        // Sort by shortest remaining time
+        availableProcesses.sort((a, b) => a.remainingTime - b.remainingTime || a.arrivalTime - b.arrivalTime);
+        let process = availableProcesses[0];
+
+
+        ganttChart.push({ process: process.id, startTime: time, endTime: time + 1 });
+
+        time++;
+        process.remainingTime--;
+
+        // If process is finished, remove it
+        if (process.remainingTime === 0) {
+            remainingProcesses = remainingProcesses.filter(p => p.id !== process.id);
+        }
+    }
+
+    return ganttChart;
+}
