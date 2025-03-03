@@ -141,3 +141,29 @@ function stcf(processes) {
 
     return ganttChart;
 }
+
+// RR Algorithm
+function rr(processes, timeQuantum) {
+    let time = 0;
+    let ganttChart = [];
+    let queue = processes.map(p => ({ ...p, remainingTime: p.burstTime })); 
+
+    while (queue.length > 0) {
+        let process = queue.shift();
+        let startTime = time;
+        let executionTime = Math.min(process.remainingTime, timeQuantum);
+        let endTime = startTime + executionTime;
+
+        
+        ganttChart.push({ process: process.id, startTime, endTime });
+
+        time = endTime;
+        process.remainingTime -= executionTime;
+
+        if (process.remainingTime > 0) {
+            queue.push(process);
+        }
+    }
+
+    return ganttChart;
+}
