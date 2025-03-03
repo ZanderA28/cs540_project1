@@ -29,7 +29,8 @@ export default function Home() {
             output = stcf([...processes]);
         }
         else if (selectedAlgorithm === "RR") {
-            output = rr([...processes])
+            // 4 is just the base quantum time
+            output = rr([...processes], 4)
         }
         setResults(output);
     }
