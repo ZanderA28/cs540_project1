@@ -32,19 +32,25 @@ export default function Home() {
             // 4 is just the base quantum time
             output = rr([...processes], 4)
         }
+        else if (selectedAlgorithm === "MLFQ") {
+            // 4 is base quantum time, 8 is lower priority quantum time
+            output = mlfq([...processes], 4, 8)
+        }
         setResults(output);
     }
 
     return (
         <div style={{ padding: "20px" }}>
             <h1>CPU Scheduling Algorithms</h1>
-
+            
             <label>Select Algorithm:</label>
             <select value={selectedAlgorithm} onChange={(e) => setSelectedAlgorithm(e.target.value)}>
                 <option value="FIFO">First-Come, First-Served (FIFO)</option>
                 <option value="SJF">Shortest Job First (SJF)</option>
                 <option value="STCF">Shortest Time to Completion (STCF)</option>
                 <option value="RR">Round Robin (RR)</option>
+                <option value="MLFQ">Multi-Level Feedback Queue</option>
+                
             </select>
 
             <button onClick={runScheduler} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
@@ -168,3 +174,5 @@ function rr(processes, timeQuantum) {
 
     return ganttChart;
 }
+
+
