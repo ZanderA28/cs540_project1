@@ -175,4 +175,56 @@ function rr(processes, timeQuantum) {
     return ganttChart;
 }
 
+// MLFQ Algorithm
+function mlfq(processes, q1Quantum = 4, q2Quantum = 8) {
+    let time = 0;
+    let ganttChart = [];
 
+    // Three queues with decreasing priority
+    let queue0 = processes.map(p => ({ ...p, remainingTime: p.burstTime }));
+    let queue1 = [];
+    let queue2 = [];
+
+    while (queue0.length > 0 || queue1.length > 0 || queue2.length > 0) {
+        if (queue0.length > 0) {
+            let process = queue0.shift();
+            let startTime = time;
+            let executionTime = Math.min(process.remainingTime, q1Quantum);
+            let endTime = startTime + executionTime;
+
+            ganttChart.push({ process: process.id, startTime, endTime });
+
+            time = endTime;
+            process.remainingTime -= executionTime;
+
+            if (process.remainingTime > 0) {
+                queue1.push(process);
+            }
+        } else if (queue1.length > 0) {
+            let process = queue1.shift();
+            let startTime = time;
+            let executionTime = Math.min(process.remainingTime, q2Quantum);
+            let endTime = startTime + executionTime;
+
+            ganttChart.push({ process: process.id, startTime, endTime });
+
+            time = endTime;
+            process.remainingTime -= executionTime;
+
+            if (process.remainingTime > 0) {
+                queue2.push(process);
+            }
+        } else if (queue2.length > 0) {
+            let process = queue2.shift();
+            let startTime = time;
+            let executionTime = process.remainingTime;
+            let endTime = startTime + executionTime;
+
+            ganttChart.push({ process: process.id, startTime, endTime });
+
+            time = endTime;
+        }
+    }
+
+    return ganttChart;
+}
