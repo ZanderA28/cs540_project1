@@ -8,14 +8,23 @@ import jsPDF from "jspdf";
 import "chart.js/auto";
 
 export default function Home() {
-    const processes = [
+    const [numProcesses, setNumProcesses] = useState(3);
+    const [processes, setProcesses] = useState([
         { id: "P1", arrivalTime: 0, burstTime: 10 },
         { id: "P2", arrivalTime: 2, burstTime: 5 },
         { id: "P3", arrivalTime: 4, burstTime: 8 }
-    ];
-
+    ]);
     const [selectedAlgorithm, setSelectedAlgorithm] = useState("FIFO");
     const [results, setResults] = useState([]);
+
+    function generateProcesses() {
+        let newProcesses = Array.from({ length: numProcesses }, (_, i) => ({
+            id: `P${i + 1}`,
+            arrivalTime: Math.floor(Math.random() * 10),
+            burstTime: Math.floor(Math.random() * 10) + 1
+        }));
+        setProcesses(newProcesses);
+    }
 
     function runScheduler() {
         let output = [];
@@ -29,12 +38,10 @@ export default function Home() {
             output = stcf([...processes]);
         }
         else if (selectedAlgorithm === "RR") {
-            // 4 is just the base quantum time
-            output = rr([...processes], 4)
+            output = rr([...processes], 4);
         }
         else if (selectedAlgorithm === "MLFQ") {
-            // 4 is base quantum time, 8 is lower priority quantum time
-            output = mlfq([...processes], 4, 8)
+            output = mlfq([...processes], 4, 8);
         }
         setResults(output);
     }
@@ -42,7 +49,28 @@ export default function Home() {
     return (
         <div style={{ padding: "20px" }}>
             <h1>CPU Scheduling Algorithms</h1>
-            
+
+            <label>Number of Processes:</label>
+            <input
+                type="number"
+                value={numProcesses}
+                onChange={(e) => setNumProcesses(Number(e.target.value))}
+                min="1"
+                style={{ marginLeft: "10px", width: "50px" }}
+            />
+            <button onClick={generateProcesses} style={{ marginLeft: "10px", padding: "5px" }}>
+                Generate Processes
+            </button>
+
+            <h2>Generated Processes:</h2>
+            <ul>
+                {processes.map((process) => (
+                    <li key={process.id}>
+                        {process.id}: Arrival Time = {process.arrivalTime}, Burst Time = {process.burstTime}
+                    </li>
+                ))}
+            </ul>
+
             <label>Select Algorithm:</label>
             <select value={selectedAlgorithm} onChange={(e) => setSelectedAlgorithm(e.target.value)}>
                 <option value="FIFO">First-Come, First-Served (FIFO)</option>
@@ -50,7 +78,6 @@ export default function Home() {
                 <option value="STCF">Shortest Time to Completion (STCF)</option>
                 <option value="RR">Round Robin (RR)</option>
                 <option value="MLFQ">Multi-Level Feedback Queue</option>
-                
             </select>
 
             <button onClick={runScheduler} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
