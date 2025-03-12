@@ -126,6 +126,10 @@ export default function Home() {
             <h2>Execution Progress:</h2>
             <progress value={currentStep} max={results.length} style={{ width: "100%" }}></progress>
 
+            <button onClick={downloadPDF} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
+                Download PDF Report
+            </button>
+
             <h2>Gantt Chart (Animated)</h2>
             <div style={{ width: "80%", height: "300px" }}>
                 <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
@@ -148,7 +152,7 @@ export default function Home() {
     );
 }
 
-
+function downloadPDF() { }
 
 // FIFO Algorithm
 function fifo(processes) {
