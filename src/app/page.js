@@ -9,13 +9,10 @@ import "chart.js/auto";
 
 export default function Home() {
     const [numProcesses, setNumProcesses] = useState(3);
-    const [processes, setProcesses] = useState([
-        { id: "P1", arrivalTime: 0, burstTime: 10 },
-        { id: "P2", arrivalTime: 2, burstTime: 5 },
-        { id: "P3", arrivalTime: 4, burstTime: 8 }
-    ]);
+    const [processes, setProcesses] = useState([]);
     const [selectedAlgorithm, setSelectedAlgorithm] = useState("FIFO");
     const [results, setResults] = useState([]);
+    const [allResults, setAllResults] = useState({});
 
     function generateProcesses() {
         let newProcesses = Array.from({ length: numProcesses }, (_, i) => ({
@@ -44,6 +41,16 @@ export default function Home() {
             output = mlfq([...processes], 4, 8);
         }
         setResults(output);
+    }
+
+    function runAllSchedulers() {
+        setAllResults({
+            FIFO: fifo([...processes]),
+            SJF: sjf([...processes]),
+            STCF: stcf([...processes]),
+            RR: rr([...processes], 4),
+            MLFQ: mlfq([...processes], 4, 8)
+        });
     }
 
     return (
@@ -83,6 +90,9 @@ export default function Home() {
             <button onClick={runScheduler} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
                 Run {selectedAlgorithm}
             </button>
+            <button onClick={runAllSchedulers} style={{ marginLeft: "10px", padding: "10px", cursor: "pointer" }}>
+                Run All Algorithms
+            </button>
 
             <h2>Results:</h2>
             <ul>
@@ -92,9 +102,24 @@ export default function Home() {
                     </li>
                 ))}
             </ul>
+
+            <h2>Comparison of All Algorithms:</h2>
+            {Object.entries(allResults).map(([algo, result]) => (
+                <div key={algo}>
+                    <h3>{algo}</h3>
+                    <ul>
+                        {result.map((entry, index) => (
+                            <li key={index}>
+                                {entry.process} → {entry.startTime} to {entry.endTime}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ))}
         </div>
     );
 }
+
 
 // FIFO Algorithm
 function fifo(processes) {
