@@ -53,6 +53,19 @@ export default function Home() {
         });
     }
 
+    const chartData = {
+        labels: results.map(entry => entry.process),
+        datasets: [
+            {
+                label: "Execution Time",
+                data: results.map(entry => entry.endTime - entry.startTime),
+                backgroundColor: "rgba(75,192,192,0.6)",
+                borderColor: "rgba(75,192,192,1)",
+                borderWidth: 1,
+            }
+        ]
+    };
+
     return (
         <div style={{ padding: "20px" }}>
             <h1>CPU Scheduling Algorithms</h1>
@@ -102,6 +115,11 @@ export default function Home() {
                     </li>
                 ))}
             </ul>
+
+            <h2>Gantt Chart</h2>
+            <div style={{ width: "80%", height: "300px" }}>
+                <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+            </div>
 
             <h2>Comparison of All Algorithms:</h2>
             {Object.entries(allResults).map(([algo, result]) => (
