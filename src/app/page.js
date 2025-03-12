@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import styles from "./page.module.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bar } from 'react-chartjs-2';
 import jsPDF from "jspdf";
 import "chart.js/auto";
@@ -13,6 +13,8 @@ export default function Home() {
     const [selectedAlgorithm, setSelectedAlgorithm] = useState("FIFO");
     const [results, setResults] = useState([]);
     const [allResults, setAllResults] = useState({});
+    const [animatedResults, setAnimatedResults] = useState([]);
+    const [currentStep, setCurrentStep] = useState(0);
 
     function generateProcesses() {
         let newProcesses = Array.from({ length: numProcesses }, (_, i) => ({
@@ -41,27 +43,41 @@ export default function Home() {
             output = mlfq([...processes], 4, 8);
         }
         setResults(output);
+        animateExecution(output);
     }
 
     function runAllSchedulers() {
-        setAllResults({
+        const results = {
             FIFO: fifo([...processes]),
             SJF: sjf([...processes]),
             STCF: stcf([...processes]),
             RR: rr([...processes], 4),
             MLFQ: mlfq([...processes], 4, 8)
+        };
+        setAllResults(results);
+    }
+
+    function animateExecution(schedule) {
+        setAnimatedResults([]);
+        setCurrentStep(0);
+        schedule.forEach((entry, index) => {
+            setTimeout(() => {
+                setAnimatedResults((prev) => [...prev, entry]);
+                setCurrentStep(index + 1);
+            }, index * 1000);
         });
     }
 
     const chartData = {
-        labels: results.map(entry => entry.process),
+        labels: animatedResults.map(entry => entry.process),
         datasets: [
             {
                 label: "Execution Time",
-                data: results.map(entry => entry.endTime - entry.startTime),
+                data: animatedResults.map(entry => entry.endTime - entry.startTime),
                 backgroundColor: "rgba(75,192,192,0.6)",
                 borderColor: "rgba(75,192,192,1)",
-                borderWidth: 1,
+                borderWidth: 2,
+                barThickness: 30
             }
         ]
     };
@@ -107,16 +123,10 @@ export default function Home() {
                 Run All Algorithms
             </button>
 
-            <h2>Results:</h2>
-            <ul>
-                {results.map((entry, index) => (
-                    <li key={index}>
-                        {entry.process} → {entry.startTime} to {entry.endTime}
-                    </li>
-                ))}
-            </ul>
+            <h2>Execution Progress:</h2>
+            <progress value={currentStep} max={results.length} style={{ width: "100%" }}></progress>
 
-            <h2>Gantt Chart</h2>
+            <h2>Gantt Chart (Animated)</h2>
             <div style={{ width: "80%", height: "300px" }}>
                 <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
             </div>
@@ -137,6 +147,7 @@ export default function Home() {
         </div>
     );
 }
+
 
 
 // FIFO Algorithm
