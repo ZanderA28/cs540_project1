@@ -286,15 +286,27 @@ function stcf(processes) {
 function rr(processes, timeQuantum) {
     let time = 0;
     let ganttChart = [];
-    let queue = processes.map(p => ({ ...p, remainingTime: p.burstTime })); 
+    let queue = [];
+    let remainingProcesses = processes.map(p => ({ ...p, remainingTime: p.burstTime }));
 
-    while (queue.length > 0) {
+    // Sort processes by arrival time
+    remainingProcesses.sort((a, b) => a.arrivalTime - b.arrivalTime);
+
+    while (remainingProcesses.length > 0 || queue.length > 0) {
+        while (remainingProcesses.length > 0 && remainingProcesses[0].arrivalTime <= time) {
+            queue.push(remainingProcesses.shift());
+        }
+
+        if (queue.length === 0) {
+            time = remainingProcesses[0].arrivalTime;
+            continue;
+        }
+
         let process = queue.shift();
         let startTime = time;
         let executionTime = Math.min(process.remainingTime, timeQuantum);
         let endTime = startTime + executionTime;
 
-        
         ganttChart.push({ process: process.id, startTime, endTime });
 
         time = endTime;
@@ -302,6 +314,10 @@ function rr(processes, timeQuantum) {
 
         if (process.remainingTime > 0) {
             queue.push(process);
+        }
+
+        while (remainingProcesses.length > 0 && remainingProcesses[0].arrivalTime <= time) {
+            queue.push(remainingProcesses.shift());
         }
     }
 
