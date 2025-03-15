@@ -220,17 +220,30 @@ function fifo(processes) {
 
 // SJF Algorithm
 function sjf(processes) {
-    let sortedProcesses = [...processes].sort((a, b) => a.burstTime - b.burstTime);
-    let currentTime = 0;
+    let time = 0;
     let ganttChart = [];
+    let remainingProcesses = [...processes].sort((a, b) => a.arrivalTime - b.arrivalTime);
 
-    for (let process of sortedProcesses) {
-        let startTime = currentTime;
+    while (remainingProcesses.length > 0) {
+        let availableProcesses = remainingProcesses.filter(p => p.arrivalTime <= time);
+
+        if (availableProcesses.length === 0) {
+            // If no process is ready, jump to the next process arrival time
+            time = remainingProcesses[0].arrivalTime;
+            continue;
+        }
+
+        // Choose the process with the shortest burst time
+        availableProcesses.sort((a, b) => a.burstTime - b.burstTime);
+        let process = availableProcesses.shift();
+
+        let startTime = time;
         let endTime = startTime + process.burstTime;
-
         ganttChart.push({ process: process.id, startTime, endTime });
 
-        currentTime = endTime;
+        remainingProcesses = remainingProcesses.filter(p => p.id !== process.id);
+
+        time = endTime;
     }
 
     return ganttChart;
