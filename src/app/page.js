@@ -13,8 +13,7 @@ export default function Home() {
     const [selectedAlgorithm, setSelectedAlgorithm] = useState("FIFO");
     const [results, setResults] = useState([]);
     const [allResults, setAllResults] = useState({});
-    const [animatedResults, setAnimatedResults] = useState([]);
-    const [currentStep, setCurrentStep] = useState(0);
+    const [showAll, setShowAll] = useState(true);
     const chartRefs = useRef({});
 
     function generateProcesses() {
@@ -44,7 +43,7 @@ export default function Home() {
             output = mlfq([...processes], 4, 8);
         }
         setResults(output);
-        animateExecution(output);
+        setShowAll(false);
     }
 
     function runAllSchedulers() {
@@ -56,6 +55,7 @@ export default function Home() {
             MLFQ: mlfq([...processes], 4, 8)
         };
         setAllResults(results);
+        setShowAll(true);
     }
 
     function downloadPDF() {
@@ -136,32 +136,66 @@ export default function Home() {
                 Download PDF Report
             </button>
 
-            <h2>Comparison of All Algorithms</h2>
-            {Object.entries(allResults).map(([algo, result]) => (
-                <div key={algo}>
-                    <h3>{algo}</h3>
+            {!showAll && results.length > 0 && (
+                <div>
+                    <h2>{selectedAlgorithm} Result</h2>
                     <ul>
-                        {result.map((entry, index) => (
+                        {results.map((entry, index) => (
                             <li key={index}>
                                 {entry.process} → {entry.startTime} to {entry.endTime}
                             </li>
                         ))}
                     </ul>
                     <div style={{ width: "80%", height: "300px" }}>
-                        <Bar ref={(el) => (chartRefs.current[algo] = el)} data={{
-                            labels: result.map(entry => entry.process),
-                            datasets: [{
-                                label: "Execution Time",
-                                data: result.map(entry => entry.endTime - entry.startTime),
-                                backgroundColor: "rgba(75,192,192,0.6)",
-                                borderColor: "rgba(75,192,192,1)",
-                                borderWidth: 2,
-                                barThickness: 30
-                            }]
-                        }} options={{ responsive: true, maintainAspectRatio: false }} />
+                        <Bar
+                            ref={(el) => (chartRefs.current[selectedAlgorithm] = el)}
+                            data={{
+                                labels: results.map(entry => entry.process),
+                                datasets: [{
+                                    label: "Execution Time",
+                                    data: results.map(entry => entry.endTime - entry.startTime),
+                                    backgroundColor: "rgba(153,102,255,0.6)",
+                                    borderColor: "rgba(153,102,255,1)",
+                                    borderWidth: 2,
+                                    barThickness: 30
+                                }]
+                            }}
+                            options={{ responsive: true, maintainAspectRatio: false }}
+                        />
                     </div>
                 </div>
-            ))}
+            )}
+
+            {showAll && (
+                <>
+                    <h2>Comparison of All Algorithms</h2>
+                    {Object.entries(allResults).map(([algo, result]) => (
+                        <div key={algo}>
+                            <h3>{algo}</h3>
+                            <ul>
+                                {result.map((entry, index) => (
+                                    <li key={index}>
+                                        {entry.process} → {entry.startTime} to {entry.endTime}
+                                    </li>
+                                ))}
+                            </ul>
+                            <div style={{ width: "80%", height: "300px" }}>
+                                <Bar ref={(el) => (chartRefs.current[algo] = el)} data={{
+                                    labels: result.map(entry => entry.process),
+                                    datasets: [{
+                                        label: "Execution Time",
+                                        data: result.map(entry => entry.endTime - entry.startTime),
+                                        backgroundColor: "rgba(75,192,192,0.6)",
+                                        borderColor: "rgba(75,192,192,1)",
+                                        borderWidth: 2,
+                                        barThickness: 30
+                                    }]
+                                }} options={{ responsive: true, maintainAspectRatio: false }} />
+                            </div>
+                        </div>
+                    ))}
+                </>
+            )}
         </div>
     );
 }
