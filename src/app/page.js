@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import styles from "./page.module.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Bar } from 'react-chartjs-2';
 import jsPDF from "jspdf";
 import "chart.js/auto";
@@ -15,6 +15,7 @@ export default function Home() {
     const [allResults, setAllResults] = useState({});
     const [animatedResults, setAnimatedResults] = useState([]);
     const [currentStep, setCurrentStep] = useState(0);
+    const chartRef = useRef(null);
 
     function generateProcesses() {
         let newProcesses = Array.from({ length: numProcesses }, (_, i) => ({
@@ -57,30 +58,30 @@ export default function Home() {
         setAllResults(results);
     }
 
-    function animateExecution(schedule) {
-        setAnimatedResults([]);
-        setCurrentStep(0);
-        schedule.forEach((entry, index) => {
-            setTimeout(() => {
-                setAnimatedResults((prev) => [...prev, entry]);
-                setCurrentStep(index + 1);
-            }, index * 1000);
-        });
-    }
+    function downloadPDF() {
+        const doc = new jsPDF();
+        doc.text("CPU Scheduling Report", 10, 10);
 
-    const chartData = {
-        labels: animatedResults.map(entry => entry.process),
-        datasets: [
-            {
-                label: "Execution Time",
-                data: animatedResults.map(entry => entry.endTime - entry.startTime),
-                backgroundColor: "rgba(75,192,192,0.6)",
-                borderColor: "rgba(75,192,192,1)",
-                borderWidth: 2,
-                barThickness: 30
+        doc.text("Generated Processes:", 10, 20);
+        processes.forEach((p, i) => {
+            doc.text(`${p.id}: Arrival Time = ${p.arrivalTime}, Burst Time = ${p.burstTime}`, 10, 30 + i * 10);
+        });
+
+        doc.text(`Algorithm: ${selectedAlgorithm}`, 10, 50);
+        doc.text("Results:", 10, 60);
+        results.forEach((r, i) => {
+            doc.text(`${r.process} → ${r.startTime} to ${r.endTime}`, 10, 70 + i * 10);
+        });
+
+        setTimeout(() => {
+            const chartCanvas = chartRef.current?.canvas;
+            if (chartCanvas) {
+                const chartImage = chartCanvas.toDataURL("image/png");
+                doc.addImage(chartImage, "PNG", 10, 90, 180, 80);
             }
-        ]
-    };
+            doc.save("CPU_Scheduling_Report.pdf");
+        }, 500);
+    }
 
     return (
         <div style={{ padding: "20px" }}>
@@ -122,20 +123,11 @@ export default function Home() {
             <button onClick={runAllSchedulers} style={{ marginLeft: "10px", padding: "10px", cursor: "pointer" }}>
                 Run All Algorithms
             </button>
-
-            <h2>Execution Progress:</h2>
-            <progress value={currentStep} max={results.length} style={{ width: "100%" }}></progress>
-
-            <button onClick={downloadPDF} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
+            <button onClick={downloadPDF} style={{ marginLeft: "10px", padding: "10px", cursor: "pointer" }}>
                 Download PDF Report
             </button>
 
-            <h2>Gantt Chart (Animated)</h2>
-            <div style={{ width: "80%", height: "300px" }}>
-                <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
-            </div>
-
-            <h2>Comparison of All Algorithms:</h2>
+            <h2>Comparison of All Algorithms</h2>
             {Object.entries(allResults).map(([algo, result]) => (
                 <div key={algo}>
                     <h3>{algo}</h3>
@@ -148,11 +140,26 @@ export default function Home() {
                     </ul>
                 </div>
             ))}
+
+            <h2>Gantt Chart (Animated)</h2>
+            <div style={{ width: "80%", height: "300px" }}>
+                <Bar ref={chartRef} data={{
+                    labels: results.map(entry => entry.process),
+                    datasets: [{
+                        label: "Execution Time",
+                        data: results.map(entry => entry.endTime - entry.startTime),
+                        backgroundColor: "rgba(75,192,192,0.6)",
+                        borderColor: "rgba(75,192,192,1)",
+                        borderWidth: 2,
+                        barThickness: 30
+                    }]
+                }} options={{ responsive: true, maintainAspectRatio: false }} />
+            </div>
         </div>
     );
 }
 
-function downloadPDF() { }
+
 
 // FIFO Algorithm
 function fifo(processes) {
