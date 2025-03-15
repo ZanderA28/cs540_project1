@@ -342,49 +342,67 @@ function mlfq(processes, q1Quantum = 4, q2Quantum = 8) {
     let time = 0;
     let ganttChart = [];
 
-    // Three queues with decreasing priority
-    let queue0 = processes.map(p => ({ ...p, remainingTime: p.burstTime }));
+    // Separate queues with decreasing priority
+    let queue0 = [];  // Highest priority (shortest quantum)
     let queue1 = [];
-    let queue2 = [];
+    let queue2 = [];  // Lowest priority (runs to completion)
 
-    while (queue0.length > 0 || queue1.length > 0 || queue2.length > 0) {
+    let allProcesses = processes.map(p => ({ ...p, remainingTime: p.burstTime, queueLevel: 0 }));
+
+    while (queue0.length > 0 || queue1.length > 0 || queue2.length > 0 || allProcesses.some(p => p.remainingTime > 0)) {
+        // Add arriving processes to queue0
+        allProcesses.forEach(process => {
+            if (process.arrivalTime === time) {
+                queue0.push(process);
+            }
+        });
+
+        let currentProcess = null;
+        let quantum = 0;
+
+        // Run highest-priority queue first
         if (queue0.length > 0) {
-            let process = queue0.shift();
-            let startTime = time;
-            let executionTime = Math.min(process.remainingTime, q1Quantum);
-            let endTime = startTime + executionTime;
-
-            ganttChart.push({ process: process.id, startTime, endTime });
-
-            time = endTime;
-            process.remainingTime -= executionTime;
-
-            if (process.remainingTime > 0) {
-                queue1.push(process);
-            }
+            currentProcess = queue0.shift();
+            quantum = q1Quantum;
         } else if (queue1.length > 0) {
-            let process = queue1.shift();
-            let startTime = time;
-            let executionTime = Math.min(process.remainingTime, q2Quantum);
-            let endTime = startTime + executionTime;
-
-            ganttChart.push({ process: process.id, startTime, endTime });
-
-            time = endTime;
-            process.remainingTime -= executionTime;
-
-            if (process.remainingTime > 0) {
-                queue2.push(process);
-            }
+            currentProcess = queue1.shift();
+            quantum = q2Quantum;
         } else if (queue2.length > 0) {
-            let process = queue2.shift();
+            currentProcess = queue2.shift();
+            quantum = currentProcess.remainingTime; // Runs to completion
+        }
+
+        if (currentProcess) {
             let startTime = time;
-            let executionTime = process.remainingTime;
+            let executionTime = Math.min(currentProcess.remainingTime, quantum);
             let endTime = startTime + executionTime;
 
-            ganttChart.push({ process: process.id, startTime, endTime });
+            ganttChart.push({ process: currentProcess.id, startTime, endTime });
 
             time = endTime;
+            currentProcess.remainingTime -= executionTime;
+
+            // Check if any new process has arrived while running
+            allProcesses.forEach(p => {
+                if (p.arrivalTime > startTime && p.arrivalTime < endTime) {
+                    queue0.push(p);
+                }
+            });
+
+            // Move process to the next queue if it didn't finish
+            if (currentProcess.remainingTime > 0) {
+                if (currentProcess.queueLevel === 0) {
+                    currentProcess.queueLevel = 1;
+                    queue1.push(currentProcess);
+                } else if (currentProcess.queueLevel === 1) {
+                    currentProcess.queueLevel = 2;
+                    queue2.push(currentProcess);
+                } else {
+                    queue2.push(currentProcess); // Stays in queue2 if it's already at the lowest priority
+                }
+            }
+        } else {
+            time++; // If no process is ready, advance time
         }
     }
 
