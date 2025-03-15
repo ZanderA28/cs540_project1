@@ -252,49 +252,49 @@ function sjf(processes) {
 
 // STCF Algorithm
 function stcf(processes) {
-    let time = 0; // Current time
+    let time = 0;
     let ganttChart = [];
-    let remainingProcesses = processes.map(p => ({ ...p, remainingTime: p.burstTime })); 
+    let remainingProcesses = processes.map(p => ({ ...p, remainingTime: p.burstTime }));
     let currentProcess = null;
     let startTime = 0;
 
     while (remainingProcesses.some(p => p.remainingTime > 0)) {
+        // Get all processes that have arrived
         let availableProcesses = remainingProcesses.filter(p => p.arrivalTime <= time && p.remainingTime > 0);
 
         if (availableProcesses.length === 0) {
-            time++; 
+            time++; // If no process is ready, increment time
             continue;
         }
 
-        // Sort by shortest remaining time 
+        // Pick the process with the shortest remaining time (SRTF)
         availableProcesses.sort((a, b) => a.remainingTime - b.remainingTime || a.arrivalTime - b.arrivalTime);
         let process = availableProcesses[0];
 
         if (currentProcess !== process.id) {
-            
+            // If switching to a new process, save the previous process entry in the Gantt chart
             if (currentProcess !== null) {
                 ganttChart.push({ process: currentProcess, startTime, endTime: time });
             }
-            
+            // Switch to the new process
             currentProcess = process.id;
             startTime = time;
         }
 
-        
+        // Execute for one unit of time
         time++;
         process.remainingTime--;
 
-        
+        // If process is finished, remove it from remainingProcesses
         if (process.remainingTime === 0) {
             remainingProcesses = remainingProcesses.filter(p => p.id !== process.id);
-            ganttChart.push({ process: process.id, startTime, endTime: time }); 
+            ganttChart.push({ process: process.id, startTime, endTime: time });
             currentProcess = null;
         }
     }
 
     return ganttChart;
 }
-
 // RR Algorithm
 function rr(processes, timeQuantum) {
     let time = 0;
