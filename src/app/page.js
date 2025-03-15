@@ -15,7 +15,7 @@ export default function Home() {
     const [allResults, setAllResults] = useState({});
     const [animatedResults, setAnimatedResults] = useState([]);
     const [currentStep, setCurrentStep] = useState(0);
-    const chartRef = useRef(null);
+    const chartRefs = useRef({});
 
     function generateProcesses() {
         let newProcesses = Array.from({ length: numProcesses }, (_, i) => ({
@@ -67,20 +67,29 @@ export default function Home() {
             doc.text(`${p.id}: Arrival Time = ${p.arrivalTime}, Burst Time = ${p.burstTime}`, 10, 30 + i * 10);
         });
 
-        doc.text(`Algorithm: ${selectedAlgorithm}`, 10, 50);
-        doc.text("Results:", 10, 60);
-        results.forEach((r, i) => {
-            doc.text(`${r.process} → ${r.startTime} to ${r.endTime}`, 10, 70 + i * 10);
-        });
+        let yOffset = 70;
+        Object.entries(allResults).forEach(([algo, result], index) => {
+            if (yOffset > 200) {
+                doc.addPage();
+                yOffset = 20;
+            }
+            doc.text(`${algo} Results:`, 10, yOffset);
+            result.forEach((r, i) => {
+                doc.text(`${r.process} → ${r.startTime} to ${r.endTime}`, 10, yOffset + 10 + i * 10);
+            });
 
-        setTimeout(() => {
-            const chartCanvas = chartRef.current?.canvas;
+            const chartCanvas = chartRefs.current[algo]?.canvas;
             if (chartCanvas) {
                 const chartImage = chartCanvas.toDataURL("image/png");
-                doc.addImage(chartImage, "PNG", 10, 90, 180, 80);
+                if (yOffset + 100 > 280) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+                doc.addImage(chartImage, "PNG", 10, yOffset + 20, 180, 80);
+                yOffset += 110;
             }
-            doc.save("CPU_Scheduling_Report.pdf");
-        }, 500);
+        });
+        doc.save("CPU_Scheduling_Report.pdf");
     }
 
     return (
@@ -138,23 +147,21 @@ export default function Home() {
                             </li>
                         ))}
                     </ul>
+                    <div style={{ width: "80%", height: "300px" }}>
+                        <Bar ref={(el) => (chartRefs.current[algo] = el)} data={{
+                            labels: result.map(entry => entry.process),
+                            datasets: [{
+                                label: "Execution Time",
+                                data: result.map(entry => entry.endTime - entry.startTime),
+                                backgroundColor: "rgba(75,192,192,0.6)",
+                                borderColor: "rgba(75,192,192,1)",
+                                borderWidth: 2,
+                                barThickness: 30
+                            }]
+                        }} options={{ responsive: true, maintainAspectRatio: false }} />
+                    </div>
                 </div>
             ))}
-
-            <h2>Gantt Chart (Animated)</h2>
-            <div style={{ width: "80%", height: "300px" }}>
-                <Bar ref={chartRef} data={{
-                    labels: results.map(entry => entry.process),
-                    datasets: [{
-                        label: "Execution Time",
-                        data: results.map(entry => entry.endTime - entry.startTime),
-                        backgroundColor: "rgba(75,192,192,0.6)",
-                        borderColor: "rgba(75,192,192,1)",
-                        borderWidth: 2,
-                        barThickness: 30
-                    }]
-                }} options={{ responsive: true, maintainAspectRatio: false }} />
-            </div>
         </div>
     );
 }
