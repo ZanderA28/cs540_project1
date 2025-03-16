@@ -13,7 +13,8 @@ export default function Home() {
     const [selectedAlgorithm, setSelectedAlgorithm] = useState("FIFO");
     const [results, setResults] = useState([]);
     const [allResults, setAllResults] = useState({});
-    const [showAll, setShowAll] = useState(true);
+    const [showAll, setShowAll] = useState(false);
+    const [quantum, setQuantum] = useState(4); // Default quantum time for Round Robin
     const chartRefs = useRef({});
 
     function generateProcesses() {
@@ -37,7 +38,7 @@ export default function Home() {
             output = stcf([...processes]);
         }
         else if (selectedAlgorithm === "RR") {
-            output = rr([...processes], 4);
+            output = rr([...processes], quantum);
         }
         else if (selectedAlgorithm === "MLFQ") {
             output = mlfq([...processes], 4, 8);
@@ -51,7 +52,7 @@ export default function Home() {
             FIFO: fifo([...processes]),
             SJF: sjf([...processes]),
             STCF: stcf([...processes]),
-            RR: rr([...processes], 4),
+            RR: rr([...processes], quantum),
             MLFQ: mlfq([...processes], 4, 8)
         };
         setAllResults(results);
@@ -68,17 +69,36 @@ export default function Home() {
         });
 
         let yOffset = 70;
-        Object.entries(allResults).forEach(([algo, result], index) => {
-            if (yOffset > 200) {
-                doc.addPage();
-                yOffset = 20;
-            }
-            doc.text(`${algo} Results:`, 10, yOffset);
-            result.forEach((r, i) => {
+
+        if (showAll) {
+            Object.entries(allResults).forEach(([algo, result], index) => {
+                if (yOffset > 200) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+                doc.text(`${algo} Results:`, 10, yOffset);
+                result.forEach((r, i) => {
+                    doc.text(`${r.process} → ${r.startTime} to ${r.endTime}`, 10, yOffset + 10 + i * 10);
+                });
+
+                const chartCanvas = chartRefs.current[algo]?.canvas;
+                if (chartCanvas) {
+                    const chartImage = chartCanvas.toDataURL("image/png");
+                    if (yOffset + 100 > 280) {
+                        doc.addPage();
+                        yOffset = 20;
+                    }
+                    doc.addImage(chartImage, "PNG", 10, yOffset + 20, 180, 80);
+                    yOffset += 110;
+                }
+            });
+        } else {
+            doc.text(`${selectedAlgorithm} Results:`, 10, yOffset);
+            results.forEach((r, i) => {
                 doc.text(`${r.process} → ${r.startTime} to ${r.endTime}`, 10, yOffset + 10 + i * 10);
             });
 
-            const chartCanvas = chartRefs.current[algo]?.canvas;
+            const chartCanvas = chartRefs.current[selectedAlgorithm]?.canvas;
             if (chartCanvas) {
                 const chartImage = chartCanvas.toDataURL("image/png");
                 if (yOffset + 100 > 280) {
@@ -88,7 +108,8 @@ export default function Home() {
                 doc.addImage(chartImage, "PNG", 10, yOffset + 20, 180, 80);
                 yOffset += 110;
             }
-        });
+        }
+
         doc.save("CPU_Scheduling_Report.pdf");
     }
 
@@ -125,6 +146,15 @@ export default function Home() {
                 <option value="RR">Round Robin (RR)</option>
                 <option value="MLFQ">Multi-Level Feedback Queue</option>
             </select>
+
+            <label style={{ marginLeft: "10px" }}>Quantum Time:</label>
+            <input
+                type="number"
+                value={quantum}
+                onChange={(e) => setQuantum(Number(e.target.value))}
+                min="1"
+                style={{ marginLeft: "10px", width: "50px" }}
+            />
 
             <button onClick={runScheduler} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
                 Run {selectedAlgorithm}
@@ -199,7 +229,6 @@ export default function Home() {
         </div>
     );
 }
-
 
 
 // FIFO Algorithm
