@@ -138,8 +138,13 @@ export default function Home() {
                 ))}
             </ul>
 
+            {/* Disable algorithm selection, quantum input, and buttons until processes are generated */}
             <label>Select Algorithm:</label>
-            <select value={selectedAlgorithm} onChange={(e) => setSelectedAlgorithm(e.target.value)}>
+            <select
+                value={selectedAlgorithm}
+                onChange={(e) => setSelectedAlgorithm(e.target.value)}
+                disabled={processes.length === 0}
+            >
                 <option value="FIFO">First-Come, First-Served (FIFO)</option>
                 <option value="SJF">Shortest Job First (SJF)</option>
                 <option value="STCF">Shortest Time to Completion (STCF)</option>
@@ -154,15 +159,28 @@ export default function Home() {
                 onChange={(e) => setQuantum(Number(e.target.value))}
                 min="1"
                 style={{ marginLeft: "10px", width: "50px" }}
+                disabled={processes.length === 0}
             />
 
-            <button onClick={runScheduler} style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}>
+            <button
+                onClick={runScheduler}
+                style={{ marginTop: "10px", padding: "10px", cursor: "pointer" }}
+                disabled={processes.length === 0}
+            >
                 Run {selectedAlgorithm}
             </button>
-            <button onClick={runAllSchedulers} style={{ marginLeft: "10px", padding: "10px", cursor: "pointer" }}>
+            <button
+                onClick={runAllSchedulers}
+                style={{ marginLeft: "10px", padding: "10px", cursor: "pointer" }}
+                disabled={processes.length === 0}
+            >
                 Run All Algorithms
             </button>
-            <button onClick={downloadPDF} style={{ marginLeft: "10px", padding: "10px", cursor: "pointer" }}>
+            <button
+                onClick={downloadPDF}
+                style={{ marginLeft: "10px", padding: "10px", cursor: "pointer" }}
+                disabled={processes.length === 0}
+            >
                 Download PDF Report
             </button>
 
